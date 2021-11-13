@@ -7,4 +7,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "RobotTank"
-include ':app'
+include(":app")
