@@ -50,10 +50,26 @@ class DriveController(
 
   override fun signal(button: ControlButton) {
     Log.d(TAG, button.toString())
+    sendCommand(button.toString().lowercase())
+  }
+
+  private fun sendCommand(command: String) {
     val connected = btSocket?.isConnected ?: false
-    if(connected) {
-      btSocket?.outputStream?.write("${button.toString().lowercase()}\n".encodeToByteArray())
+    if (connected) {
+      btSocket?.outputStream?.write("$command\n".encodeToByteArray())
     }
+  }
+
+  override fun blowHorn() {
+    sendCommand("horn")
+  }
+
+  override fun switchOnLight() {
+    sendCommand("lon")
+  }
+
+  override fun switchOffLight() {
+    sendCommand("loff")
   }
 
   override fun scanBtDevices() {
@@ -84,4 +100,7 @@ interface DriveSignals {
   fun signal(button: ControlButton)
   fun scanBtDevices()
   fun connect(state: DeviceWithState)
+  fun blowHorn()
+  fun switchOnLight()
+  fun switchOffLight()
 }

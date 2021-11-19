@@ -6,17 +6,20 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,23 +39,32 @@ object ControllerPad {
     val lis = remember { MutableInteractionSource() }
     val ris = remember { MutableInteractionSource() }
 
-    val buttonToSource = mapOf(ControlButton.UP to uis,
-           ControlButton.DOWN to dis,
-          ControlButton.LEFT to lis,
-          ControlButton.RIGHT to ris)
+    // It seems [collectIsPressedAsState] needs to be called each time, so don't call it inside
+    // [any] below or it won't correctly.
+    val buttonToSource = mapOf(ControlButton.UP to uis.collectIsPressedAsState(),
+                               ControlButton.DOWN to dis.collectIsPressedAsState(),
+                               ControlButton.LEFT to lis.collectIsPressedAsState(),
+                               ControlButton.RIGHT to ris.collectIsPressedAsState())
 
     // Left/Right buttons override Up/down
     listOf(ControlButton.LEFT, ControlButton.RIGHT, ControlButton.UP, ControlButton.DOWN).any {
-      val isPressed by buttonToSource.getValue(it).collectIsPressedAsState()
+      val isPressed = buttonToSource.getValue(it).value
       Log.d(TAG, "$it: $isPressed")
       driveSignals.buttonHeld.set(if (isPressed) it else null)
       return@any isPressed
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-      OutlinedButton(onClick = { driveSignals.signal(ControlButton.UP) },
-                     modifier = Modifier.size(BUTTON_SIZE), interactionSource = uis) {
-        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up")
+      Row {
+        Spacer(Modifier.size(BUTTON_SIZE))
+        OutlinedButton(onClick = { driveSignals.signal(ControlButton.UP) },
+                       modifier = Modifier.size(BUTTON_SIZE), interactionSource = uis) {
+          Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up")
+        }
+        OutlinedButton(onClick = { driveSignals.scanBtDevices() },
+                       modifier = Modifier.size(BUTTON_SIZE)) {
+          Icon(Icons.Filled.Refresh, contentDescription = "Scan bluetooth devices")
+        }
       }
       Row {
         OutlinedButton(onClick = { driveSignals.signal(ControlButton.LEFT) },
@@ -60,18 +72,28 @@ object ControllerPad {
                        interactionSource = lis) {
           Icon(Icons.Filled.KeyboardArrowLeft, contentDescription = "Left")
         }
-        OutlinedButton(onClick = { driveSignals.scanBtDevices() },
+        OutlinedButton(onClick = { driveSignals.blowHorn() },
                        modifier = Modifier.size(BUTTON_SIZE)) {
-          Icon(Icons.Filled.Refresh, contentDescription = "Scan bluetooth devices")
+          Icon(Icons.Filled.Call, contentDescription = "Horn")
         }
         OutlinedButton(onClick = { driveSignals.signal(ControlButton.RIGHT) },
                        modifier = Modifier.size(BUTTON_SIZE), interactionSource = ris) {
           Icon(Icons.Filled.KeyboardArrowRight, contentDescription = "Right")
         }
       }
-      OutlinedButton(onClick = { driveSignals.signal(ControlButton.DOWN) },
-                     modifier = Modifier.size(BUTTON_SIZE), interactionSource = dis) {
-        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Down")
+      Row {
+        OutlinedButton(onClick = { driveSignals.switchOnLight() },
+                       modifier = Modifier.size(BUTTON_SIZE), interactionSource = dis) {
+          Icon(Icons.Filled.Create, contentDescription = "Light on")
+        }
+        OutlinedButton(onClick = { driveSignals.signal(ControlButton.DOWN) },
+                       modifier = Modifier.size(BUTTON_SIZE), interactionSource = dis) {
+          Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Down")
+        }
+        OutlinedButton(onClick = { driveSignals.switchOffLight() },
+                       modifier = Modifier.size(BUTTON_SIZE), interactionSource = dis) {
+          Icon(Icons.Filled.Delete, contentDescription = "Light off")
+        }
       }
     }
   }
