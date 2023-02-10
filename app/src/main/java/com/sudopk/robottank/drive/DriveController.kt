@@ -60,17 +60,13 @@ class DriveController(
     }
   }
 
-  override fun blowHorn() {
-    sendCommand("horn")
-  }
+  override fun toggleAutoMode() = sendCommand("auto")
 
-  override fun switchOnLight() {
-    sendCommand("lon")
-  }
+  override fun blowHorn() = sendCommand("horn")
 
-  override fun switchOffLight() {
-    sendCommand("loff")
-  }
+  override fun switchOnLight() = sendCommand("lon")
+
+  override fun switchOffLight() = sendCommand("loff")
 
   override fun scanBtDevices() {
     btSocket?.close()
@@ -98,6 +94,7 @@ interface DriveSignals {
   val buttonHeld: AtomicReference<ControlButton>
 
   fun signal(button: ControlButton)
+  fun toggleAutoMode()
   fun scanBtDevices()
   fun connect(state: DeviceWithState)
   fun blowHorn()

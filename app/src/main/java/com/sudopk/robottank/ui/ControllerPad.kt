@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,14 +41,14 @@ object ControllerPad {
     val ris = remember { MutableInteractionSource() }
 
     // It seems [collectIsPressedAsState] needs to be called each time, so don't call it inside
-    // [any] below or it won't correctly.
+    // [any] below or it won't work correctly.
     val buttonToSource = mapOf(ControlButton.UP to uis.collectIsPressedAsState(),
                                ControlButton.DOWN to dis.collectIsPressedAsState(),
                                ControlButton.LEFT to lis.collectIsPressedAsState(),
                                ControlButton.RIGHT to ris.collectIsPressedAsState())
 
-    // Left/Right buttons override Up/down
-    listOf(ControlButton.LEFT, ControlButton.RIGHT, ControlButton.UP, ControlButton.DOWN).any {
+    // Left/Right buttons override Down/Up. Down overrides Up.
+    listOf(ControlButton.LEFT, ControlButton.RIGHT, ControlButton.DOWN, ControlButton.UP).any {
       val isPressed = buttonToSource.getValue(it).value
       Log.d(TAG, "$it: $isPressed")
       driveSignals.buttonHeld.set(if (isPressed) it else null)
@@ -56,7 +57,10 @@ object ControllerPad {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
       Row {
-        Spacer(Modifier.size(BUTTON_SIZE))
+        OutlinedButton(onClick = { driveSignals.toggleAutoMode() },
+                       modifier = Modifier.size(BUTTON_SIZE)) {
+          Icon(Icons.Filled.Send, contentDescription = "Toggle auto mode")
+        }
         OutlinedButton(onClick = { driveSignals.signal(ControlButton.UP) },
                        modifier = Modifier.size(BUTTON_SIZE), interactionSource = uis) {
           Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up")
